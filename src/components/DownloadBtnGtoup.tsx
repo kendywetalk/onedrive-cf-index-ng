@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { MouseEventHandler, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { IconProp } from '@fortawesome/fontawesome-svg-core'
@@ -63,55 +62,28 @@ export const DownloadButton = ({
 }
 
 const DownloadButtonGroup = () => {
-  const { asPath } = useRouter();
-  const hashedToken = getStoredToken(asPath); // Ensure getStoredToken is defined in your project
+  const { asPath } = useRouter()
+  const hashedToken = getStoredToken(asPath)
 
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  const shortenUrl = async (url: string) => {
-    try {
-      const response = await axios.post('/api/shorten-url', { url });
-      if (response.status === 200) {
-        return response.data.shortUrl;
-      } else {
-        throw new Error('Failed to shorten URL');
-      }
-    } catch (error) {
-      toast.error('Failed to shorten URL.');
-      return null;
-    }
-  };
-
-  const handleDownloadLink = async () => {
-    const directLink = `${getBaseUrl()}/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`;
-    const shortLink = await shortenUrl(directLink);
-    if (shortLink) {
-      window.open(shortLink);
-    }
-  };
-
-  const handleCopyLink = async () => {
-    const directLink = `${getBaseUrl()}/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`;
-    const shortLink = await shortenUrl(directLink);
-    if (shortLink) {
-      clipboard.copy(shortLink);
-      toast.success('Copied shortened link to clipboard.');
-    }
-  };
+  const clipboard = useClipboard()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <>
       <CustomEmbedLinkMenu menuOpen={menuOpen} setMenuOpen={setMenuOpen} path={asPath} />
       <div className="flex flex-wrap justify-center gap-2">
         <DownloadButton
-          onClickCallback={handleDownloadLink}
+          onClickCallback={() => window.open(`/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
           btnColor="blue"
           btnText={'Download'}
           btnIcon="file-download"
           btnTitle={'Download the file directly through OneDrive'}
         />
         <DownloadButton
-          onClickCallback={handleCopyLink}
+          onClickCallback={() => {
+            clipboard.copy(`${getBaseUrl()}/api/raw?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)
+            toast.success('Copied direct link to clipboard.')
+          }}
           btnColor="pink"
           btnText={'Copy direct link'}
           btnIcon="copy"
@@ -125,7 +97,7 @@ const DownloadButtonGroup = () => {
         />
       </div>
     </>
-  );
-};
+  )
+}
 
-export default DownloadButtonGroup;
+export default DownloadButtonGroup
